@@ -1,0 +1,67 @@
+5
+Aim  - Write that recognizes different a program types of English words. 
+Theory -  
+This C program classifies words in a user-inputted sentence based on predefined categories of 
+parts of speech, such as articles, nouns, verbs, adjectives, prepositions, and conjunctions. 
+The program stores predefined lists of words categorized into different parts of speech (articles, 
+nouns, verbs, adjectives, prepositions, and conjunctions). 
+Code- 
+#include <stdio.h> 
+#include <string.h> 
+#include <ctype.h> 
+// Predefined word lists for different parts of speech 
+const char *articles[] = {"the", "a", "an"}; 
+const char *nouns[] = {"dog", "cat", "car", "tree", "John", "Alice", "house", "river", "computer", 
+"book", "city"}; 
+const char *verbs[] = {"run", "eat", "sleep", "jump", "write", "walk", "talk", "read", "sing", 
+"play"}; 
+const char *adjectives[] = {"happy", "sad", "big", "small", "fast", "bright", "dark", "strong", 
+"weak", "beautiful"}; 
+const char *prepositions[] = {"in", "on", "at", "with", "by", "under", "over", "between", 
+"against", "through"}; 
+const char *conjunctions[] = {"and", "but", "or", "so", "yet", "because", "although", "while", "if", 
+"unless"}; 
+#define NUM_WORDS(arr) (sizeof(arr) / sizeof(arr[0])) 
+// Function to check if a word is in a given list 
+int isInList(const char *word, const char *list[], int size) { 
+for (int i = 0; i < size; i++) { 
+if (strcmp(word, list[i]) == 0) { 
+return 1; 
+} 
+} 
+return 0; 
+} 
+// Function to classify words 
+void recognizeWords(char *input) { 
+char *token = strtok(input, " "); 
+while (token) { 
+// Convert word to lowercase for case-insensitive matching 
+for (int i = 0; token[i]; i++) { 
+token[i] = tolower(token[i]); 
+} 
+if (isInList(token, articles, NUM_WORDS(articles))) { 
+printf("Article: %s\n", token); 
+} else if (isInList(token, nouns, NUM_WORDS(nouns))) { 
+printf("Noun: %s\n", token); 
+} else if (isInList(token, verbs, NUM_WORDS(verbs))) { 
+printf("Verb: %s\n", token); 
+} else if (isInList(token, adjectives, NUM_WORDS(adjectives))) { 
+printf("Adjective: %s\n", token); 
+} else if (isInList(token, prepositions, NUM_WORDS(prepositions))) { 
+printf("Preposition: %s\n", token); 
+} else if (isInList(token, conjunctions, NUM_WORDS(conjunctions))) { 
+printf("Conjunction: %s\n", token); 
+} else { 
+printf("Unknown: %s\n", token); 
+} 
+token = strtok(NULL, " "); 
+} 
+} 
+int main() { 
+char input[200]; 
+printf("Enter a sentence: "); 
+fgets(input, sizeof(input), stdin); 
+input[strcspn(input, "\n")] = '\0'; // Remove newline character 
+recognizeWords(input); 
+return 0; 
+}
