@@ -1,0 +1,93 @@
+9
+Aim-  Open Ended program: Designing of various type parser 
+Theory-  LR parser includes the following steps 
+Shift Operation: 
+• Reads input from left to right. 
+• Pushes tokens onto the stack. 
+Reduce Operation: 
+• Applies a grammar rule when a valid pattern is found. 
+Goto Operation: 
+• Moves to the correct next state after reduction. 
+Acceptance: 
+• If the input is completely read and stack reaches state 6, the string is accepted. 
+Code- 
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <string.h> 
+#define MAX_STACK 100 
+typedef struct { 
+int state; 
+char symbol; 
+} StackItem; 
+StackItem stack[MAX_STACK]; 
+int top = -1; 
+char input[100]; 
+int pos = 0; 
+void push(int state, char symbol) { 
+if (top < MAX_STACK - 1) { 
+stack[++top].state = state; 
+stack[top].symbol = symbol; 
+} 
+} 
+void pop(int count) { 
+top -= count; 
+} 
+void displayStack() { 
+printf("Stack: "); 
+for (int i = 0; i <= top; i++) 
+printf("(%d, %c) ", stack[i].state, stack[i].symbol); 
+printf("\n"); 
+} 
+int getGoto(int state, char nonTerminal) { 
+if (state == 0 && nonTerminal == 'E') return 1; 
+if (state == 0 && nonTerminal == 'T') return 2; 
+if (state == 0 && nonTerminal == 'F') return 3; 
+if (state == 4 && nonTerminal == 'E') return 6; 
+if (state == 4 && nonTerminal == 'T') return 2; 
+if (state == 4 && nonTerminal == 'F') return 3; 
+return -1; 
+} 
+int parse() { 
+push(0, '$'); 
+while (1) { 
+int state = stack[top].state; 
+char symbol = input[pos]; 
+if (state == 0 && (symbol == 'i')) { 
+push(5, 'i'); 
+pos++; 
+} else if (state == 5 && symbol == '+') { 
+push(4, '+'); 
+pos++; 
+} else if (state == 5 && symbol == '*') { 
+push(3, '*'); 
+pos++; 
+} else if (state == 5 || state == 3 || state == 6) { 
+if (stack[top].symbol == 'i') { 
+pop(1); 
+push(getGoto(stack[top].state, 'F'), 'F'); 
+} else if (stack[top].symbol == 'F') { 
+pop(1); 
+push(getGoto(stack[top].state, 'T'), 'T'); 
+} else if (stack[top].symbol == 'T') { 
+pop(1); 
+push(getGoto(stack[top].state, 'E'), 'E'); 
+} else { 
+return 0; 
+} 
+} else if (state == 6 && symbol == '$') { 
+return 1; 
+} else { 
+return 0; 
+} 
+displayStack(); 
+} 
+} 
+int main() { 
+printf("Enter input string (use 'i' for identifier, end with $): "); 
+scanf("%s", input); 
+if (parse()) 
+printf("String is accepted.\n"); 
+else 
+printf("String is not accepted.\n"); 
+return 0; 
+}
