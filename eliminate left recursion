@@ -1,0 +1,110 @@
+3
+Aim -  Write a program to eliminate left recursion 
+Theory - 
+Left Recursion is a common problem that occurs in grammar during parsing in the 
+syntax analysis part of compilation. It is important to remove left recursion from 
+grammar because it can create an infinite loop, leading to errors and a significant 
+decrease in performance. We will discuss how to remove Left Recursion in detail 
+along with an example and explanations of the process in this article. 
+Types of Left Recursion 
+There are two types of Left Recursion: 
+1) Direct Left Recursion 
+2) Indirect Left Recursion 
+Code -  
+#include <stdio.h> 
+#include <string.h> 
+#include <stdlib.h> 
+#define MAX_RULES 10 
+#define MAX_LEN 100 
+// Structure to represent the production rules 
+typedef struct { 
+char left[MAX_LEN]; 
+char right[MAX_LEN][MAX_LEN]; 
+int right_count; 
+} Production; 
+// Function to eliminate left recursion 
+void eliminateLeftRecursion(Production *grammar, int *prod_count) { 
+for (int i = 0; i < *prod_count; i++) { 
+Production *prod = &grammar[i]; 
+// Check for left recursion: A -> Aα | β 
+int left_recursion = 0; 
+for (int j = 0; j < prod->right_count; j++) { 
+if (prod->right[j][0] == prod->left[0]) { 
+left_recursion = 1; 
+break; 
+} 
+} 
+if (left_recursion) { 
+// New non-terminal A' 
+char new_non_terminal[MAX_LEN]; 
+sprintf(new_non_terminal, "%c'", prod->left[0]); 
+// Step 1: Split into non-recursive and recursive parts 
+Production new_prod = {0}; 
+strcpy(new_prod.left, prod->left); 
+new_prod.right_count = 0; 
+Production new_prod2 = {0}; 
+strcpy(new_prod2.left, new_non_terminal); 
+new_prod2.right_count = 0; 
+// Step 2: Create new grammar without left recursion 
+for (int j = 0; j < prod->right_count; j++) { 
+if (prod->right[j][0] == prod->left[0]) { 
+// Recursive rule: A -> Aβ becomes A' -> βA' 
+char temp[MAX_LEN]; 
+strcpy(temp, prod->right[j] + 1); // Remove the left recursion 
+sprintf(new_prod2.right[new_prod2.right_count], "%s%c", temp, 
+new_non_terminal[0]); 
+new_prod2.right_count++; 
+} else { 
+// Non-recursive rule: A -> β becomes A -> βA' 
+strcpy(new_prod.right[new_prod.right_count], prod->right[j]); 
+new_prod.right_count++; 
+} 
+} 
+// Step 3: Update the original grammar 
+grammar[i] = new_prod; 
+grammar[*prod_count] = new_prod2; 
+(*prod_count)++; 
+} 
+} 
+} 
+// Function to print grammar 
+void printGrammar(Production *grammar, int prod_count) { 
+for (int i = 0; i < prod_count; i++) { 
+printf("%s-> ", grammar[i].left); 
+for (int j = 0; j < grammar[i].right_count; j++) { 
+if (j > 0) { 
+printf(" | "); 
+} 
+printf("%s", grammar[i].right[j]); 
+} 
+printf("\n"); 
+} 
+} 
+int main() { 
+int prod_count; 
+Production grammar[MAX_RULES]; 
+// Input the number of production rules 
+printf("Enter the number of production rules: "); 
+scanf("%d", &prod_count); 
+// Input the production rules 
+for (int i = 0; i < prod_count; i++) { 
+char temp[MAX_LEN]; 
+printf("Enter the left-hand side (non-terminal): "); 
+scanf("%s", grammar[i].left); 
+printf("Enter the number of right-hand side alternatives for %s: ", 
+grammar[i].left); 
+int n; 
+scanf("%d", &n); 
+grammar[i].right_count = n; 
+for (int j = 0; j < n; j++) { 
+printf("Enter production %d: ", j + 1); 
+scanf("%s", grammar[i].right[j]); 
+} 
+} 
+// Eliminate left recursion 
+eliminateLeftRecursion(grammar, &prod_count); 
+// Output the resulting grammar 
+printf("\nGrammar after eliminating left recursion:\n"); 
+printGrammar(grammar, prod_count); 
+return 0; 
+} 
