@@ -1,0 +1,96 @@
+4
+Aim  - Write a program for Recursive Descent Calculator. 
+Theory -  
+A Recursive Descent Calculator parses and evaluates arithmetic expressions using 
+recursive descent parsing. This program supports: 
+l Addition (+) 
+l Subtraction (-) 
+l Multiplication (*) 
+l Division (/) 
+l Parentheses (( )) 
+l Integer and Floating-Point Numbers 
+Code - 
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <ctype.h> 
+char *expr; 
+double parseExpression(); 
+double parseNumber() { 
+double result = 0.0; 
+int decimalSeen = 0; 
+double fractionPart = 0.1; 
+while (isdigit(*expr) || *expr == '.') { 
+if (*expr == '.') { 
+decimalSeen = 1; 
+} else { 
+if (decimalSeen) { 
+result = result + (*expr - '0') * fractionPart; 
+fractionPart /= 10; 
+} else { 
+result = result * 10 + (*expr - '0'); 
+} 
+} 
+expr++; 
+} 
+return result; 
+} 
+double parseFactor() { 
+double result; 
+if (*expr == '(') { 
+expr++; 
+result = parseExpression(); 
+if (*expr == ')') { 
+expr++; 
+} else { 
+printf("Error: Mismatched parentheses!\n"); 
+exit(EXIT_FAILURE); 
+} 
+} else if (isdigit(*expr) || *expr == '.') { 
+result = parseNumber(); 
+} else { 
+printf("Error: Unexpected character '%c'\n", *expr); 
+exit(EXIT_FAILURE); 
+} 
+return result; 
+} 
+double parseTerm() { 
+double result = parseFactor(); 
+while (*expr == '*' || *expr == '/') { 
+char op = *expr; 
+expr++; 
+double nextFactor = parseFactor(); 
+if (op == '*') { 
+result *= nextFactor; 
+} else if (op == '/') { 
+if (nextFactor == 0) { 
+printf("Error: Division by zero!\n"); 
+exit(EXIT_FAILURE); 
+} 
+result /= nextFactor; 
+} 
+} 
+return result; 
+} 
+double parseExpression() { 
+double result = parseTerm(); 
+while (*expr == '+' || *expr == '-') { 
+char op = *expr; 
+expr++; 
+double nextTerm = parseTerm(); 
+if (op == '+') { 
+result += nextTerm; 
+} else { 
+result -= nextTerm; 
+} 
+} 
+return result; 
+} 
+int main() { 
+char input[100]; 
+printf("Enter an arithmetic expression: "); 
+fgets(input, sizeof(input), stdin); 
+expr = input; 
+double result = parseExpression(); 
+printf("Result: %lf\n", result); 
+return 0; 
+}
