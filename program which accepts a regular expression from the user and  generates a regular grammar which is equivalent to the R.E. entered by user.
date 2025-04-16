@@ -1,0 +1,70 @@
+2
+Aim - Write a program which accepts a regular expression from the user and 
+generates a regular grammar which is equivalent to the R.E. entered by user. 
+The grammar will be printed to a text file, with only one production rule in eac h 
+line. Also, make sure that all production rules are displayed in 
+compact forms e.g. the production rules: S--> aB, S--> cd S--> PQ Should be 
+written as S--> aB | cd | PQ And not as three different production rules. 
+Also, there should not be any repetition of production. 
+Code -  
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <string.h> 
+#include <ctype.h> 
+#define MAX_PRODUCTIONS 100 
+#define MAX_LENGTH 100 
+typedef struct { 
+char lhs; 
+char rhs[MAX_LENGTH]; 
+} Production; 
+Production productions[MAX_PRODUCTIONS]; 
+int productionCount = 0; 
+void addProduction(char lhs, char *rhs) { 
+for (int i = 0; i < productionCount; i++) { 
+if (productions[i].lhs == lhs) { 
+if (strstr(productions[i].rhs, rhs) == NULL) { 
+strcat(productions[i].rhs, " | "); 
+strcat(productions[i].rhs, rhs); 
+} 
+return; 
+} 
+} 
+productions[productionCount].lhs = lhs; 
+strcpy(productions[productionCount].rhs, rhs); 
+productionCount++; 
+} 
+void convertREtoGrammar(char *re) { 
+int len = strlen(re); 
+char startSymbol = 'S'; 
+char temp[3] = {0}; 
+for (int i = 0; i < len; i++) { 
+if (isalnum(re[i])) { 
+if (i + 1 < len && isalnum(re[i + 1])) { 
+temp[0] = re[i]; 
+temp[1] = re[i + 1]; 
+temp[2] = '\0'; 
+addProduction(startSymbol, temp); 
+} else { 
+temp[0] = re[i]; 
+temp[1] = '\0'; 
+addProduction(startSymbol, temp); 
+} 
+} else if (re[i] == '|') { 
+continue; 
+} 
+} 
+} 
+void displayGrammar() { 
+printf("\nEquivalent Regular Grammar:\n"); 
+for (int i = 0; i < productionCount; i++) { 
+printf("%c --> %s\n", productions[i].lhs, productions[i].rhs); 
+} 
+} 
+int main() { 
+char re[MAX_LENGTH]; 
+printf("Enter a Regular Expression: "); 
+scanf("%s", re); 
+convertREtoGrammar(re); 
+displayGrammar(); 
+return 0; 
+} 
