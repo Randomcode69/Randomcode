@@ -1,0 +1,136 @@
+8
+Aim- Design a parser which accepts a mathematical expression (containing integers only). If the 
+expression is valid, then evaluate the expression else report that the expression is invalid. [Note: 
+Design first the Grammar and then implement using Shift-Reduce parsing technique. Your 
+program should generate an output file clearly showing each step of parsing/evaluation of the 
+intermediate sub-expressions.] 
+Theory- 
+This C program implements a Shift-Reduce Parser for evaluating integer-based mathematical 
+expressions. It follows operator precedence and handles parentheses using a stack. The program 
+logs parsing steps in an output file, showing shift (pushing tokens) and reduce (evaluating 
+operations), ensuring correct expression validation and computation. 
+Code- 
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <ctype.h> 
+#include <string.h> 
+#define STACK_SIZE 100 
+typedef struct { 
+char symbol; 
+int value; // Stores numerical values for evaluation 
+} StackItem; 
+StackItem stack[STACK_SIZE];  
+int top = -1; 
+// Function to push into the stack 
+void push(char symbol, int value) { 
+if (top >= STACK_SIZE - 1) { 
+printf("Stack Overflow\n"); 
+exit(1); 
+} 
+stack[++top].symbol = symbol; 
+stack[top].value = value; 
+} 
+// Function to pop from the stack 
+StackItem pop() { 
+if (top < 0) { 
+printf("Stack Underflow\n"); 
+exit(1); 
+} 
+return stack[top--]; 
+} 
+// Function to check if a character is an operator 
+int isOperator(char c) { 
+return (c == '+' || c == '-' || c == '*' || c == '/'); 
+} 
+// Function to check precedence of operators 
+int precedence(char op) { 
+if (op == '*' || op == '/') return 2; 
+if (op == '+' || op == '-') return 1; 
+return 0; 
+} 
+// Function to evaluate an operation 
+int evaluate(int a, int b, char op) { 
+switch (op) { 
+case '+': return a + b; 
+case '-': return a - b; 
+case '*': return a * b; 
+case '/': return (b == 0) ? (printf("Error: Division by zero\n"), exit(1), 0) : a / b; 
+default: return 0; 
+} 
+} 
+// Function to perform shift-reduce parsing 
+void parseExpression(char *expr, FILE *outputFile) { 
+int i = 0, num = 0; 
+char op; 
+fprintf(outputFile, "Parsing Steps:\n"); 
+while (expr[i] != '\0') { 
+if (isdigit(expr[i])) { 
+num = 0; 
+while (isdigit(expr[i])) { 
+num = num * 10 + (expr[i] - '0'); 
+i++; 
+} 
+push('n', num); 
+fprintf(outputFile, "Shift: Pushed number %d\n", num); 
+} else if (expr[i] == '(') { 
+push('(', 0); 
+fprintf(outputFile, "Shift: Pushed '('\n"); 
+i++; 
+} else if (expr[i] == ')') { 
+while (top >= 1 && stack[top - 1].symbol != '(') { 
+StackItem b = pop(); 
+StackItem op = pop(); 
+StackItem a = pop(); 
+push('n', evaluate(a.value, b.value, op.symbol)); 
+fprintf(outputFile, "Reduce: Evaluated %d %c %d = %d\n", a.value, op.symbol, 
+b.value, stack[top].value); 
+} 
+if (stack[top].symbol == '(') { 
+pop(); 
+fprintf(outputFile, "Shift: Popped '('\n"); 
+} 
+i++; 
+} else if (isOperator(expr[i])) { 
+while (top >= 1 && isOperator(stack[top - 1].symbol) && precedence(stack[top - 
+1].symbol) >= precedence(expr[i])) { 
+StackItem b = pop(); 
+StackItem op = pop(); 
+StackItem a = pop(); 
+push('n', evaluate(a.value, b.value, op.symbol)); 
+fprintf(outputFile, "Reduce: Evaluated %d %c %d = %d\n", a.value, op.symbol, 
+b.value, stack[top].value); 
+} 
+push(expr[i], 0); 
+fprintf(outputFile, "Shift: Pushed operator '%c'\n", expr[i]); 
+i++; 
+} else { 
+printf("Invalid character detected: %c\n", expr[i]); 
+fprintf(outputFile, "Invalid character detected: %c\n", expr[i]); 
+exit(1); 
+} 
+} 
+while (top >= 1) { 
+StackItem b = pop(); 
+StackItem op = pop(); 
+StackItem a = pop(); 
+push('n', evaluate(a.value, b.value, op.symbol)); 
+fprintf(outputFile, "Reduce: Evaluated %d %c %d = %d\n", a.value, op.symbol, b.value, 
+stack[top].value); 
+} 
+fprintf(outputFile, "Final result: %d\n", stack[top].value); 
+} 
+int main() { 
+char expression[100]; 
+FILE *outputFile = fopen("parsing_steps.txt", "w"); 
+if (!outputFile) { 
+printf("Error opening file!\n"); 
+return 1; 
+} 
+printf("Enter a mathematical expression: "); 
+fgets(expression, sizeof(expression), stdin); 
+expression[strcspn(expression, "\n")] = '\0'; // Remove newline character 
+parseExpression(expression, outputFile); 
+printf("Parsing and evaluation completed! Check 'parsing_steps.txt' for details.\n"); 
+fclose(outputFile); 
+return 0; 
+} 
