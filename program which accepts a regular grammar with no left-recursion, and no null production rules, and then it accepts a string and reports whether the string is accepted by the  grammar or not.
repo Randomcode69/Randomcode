@@ -1,0 +1,107 @@
+7
+Aim- Write a program which accepts a regular grammar with no left-recursion, and no null
+production rules, and then it accepts a string and reports whether the string is accepted by the 
+grammar or not. 
+Theory- 
+A regular grammar follows right-linear or left-linear rules without null productions or left 
+recursion. The program simulates a finite state automaton (FSA) to parse input strings. It 
+transitions through states based on grammar rules and checks if the final state is reached, 
+determining whether the string is accepted or rejected. 
+Code- 
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <string.h> 
+#define MAX_STATES 50 
+#define MAX_TRANSITIONS 50 
+// Structure to hold a transition rule 
+typedef struct { 
+char current_state; 
+char input_symbol; 
+char next_state; 
+} Transition; 
+Transition transitions[MAX_TRANSITIONS]; 
+char final_states[MAX_STATES]; 
+char start_state; 
+int num_transitions = 0; 
+int num_final_states = 0; 
+// Function to add a transition rule 
+void add_transition(char current, char symbol, char next) { 
+transitions[num_transitions].current_state = current; 
+transitions[num_transitions].input_symbol = symbol; 
+transitions[num_transitions].next_state = next; 
+num_transitions++; 
+} 
+// Function to check if a state is final 
+int is_final_state(char state) { 
+    for (int i = 0; i < num_final_states; i++) { 
+        if (final_states[i] == state) { 
+            return 1; 
+        } 
+    } 
+    return 0; 
+} 
+ 
+// Function to process a string through the finite automaton 
+int process_string(char *input) { 
+    char current_state = start_state; 
+     
+    for (int i = 0; input[i] != '\0'; i++) { 
+        char symbol = input[i]; 
+        int found = 0; 
+ 
+        // Search for a valid transition 
+        for (int j = 0; j < num_transitions; j++) { 
+            if (transitions[j].current_state == current_state && transitions[j].input_symbol == 
+symbol) { 
+                current_state = transitions[j].next_state; 
+                found = 1; 
+                break; 
+            } 
+        } 
+ 
+        if (!found) { 
+            return 0; // No valid transition found, reject 
+        } 
+    } 
+ 
+    return is_final_state(current_state); 
+} 
+ 
+int main() { 
+    printf("Enter the regular grammar productions (format: A -> aB or C# for final states).\n"); 
+    printf("Type 'done' when finished.\n\n"); 
+ 
+    char input[20]; 
+     
+    while (1) { 
+        printf("Production: "); 
+        scanf("%s", input); 
+ 
+        if (strcmp(input, "done") == 0) { 
+break; 
+} 
+if (strchr(input, '#')) { // Final state notation (e.g., C#) 
+final_states[num_final_states++] = input[0]; 
+} else if (strchr(input, '>')) { // Transition rule (e.g., A -> aB) 
+char current = input[0]; 
+char symbol = input[5]; 
+char next = input[6]; 
+if (num_transitions == 0) { 
+start_state = current; // Set first encountered state as start 
+} 
+add_transition(current, symbol, next); 
+} else { 
+printf("Invalid input! Use 'A -> aB' or 'C#'.\n"); 
+} 
+} 
+printf("\nEnter a string to test: "); 
+scanf("%s", input); 
+if (process_string(input)) { 
+printf("
+ ✅ String is ACCEPTED by the grammar!\n"); 
+} else { 
+printf("
+ ❌ String is REJECTED by the grammar.\n"); 
+} 
+return 0; 
+} 
